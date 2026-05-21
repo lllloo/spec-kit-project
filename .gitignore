@@ -1,0 +1,2 @@
+# Spec Kit extension caches（每次更新會重生，不入版控）
+.specify/extensions/.cache/
