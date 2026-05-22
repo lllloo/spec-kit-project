@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\PasswordController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +29,11 @@ Route::prefix('auth')->group(function (): void {
 
     Route::post('/login', [AuthController::class, 'login'])
         ->middleware('throttle:login');
+
+    // US3：忘記/重設密碼（公開）
+    Route::post('/password/forgot', [PasswordController::class, 'forgot'])
+        ->middleware('throttle:password-reset');
+    Route::post('/password/reset', [PasswordController::class, 'reset']);
 });
 
 // US1 + US2：需登入
@@ -40,4 +46,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::patch('/profile', [ProfileController::class, 'update']);
     Route::post('/profile/avatar', [ProfileController::class, 'uploadAvatar']);
+
+    // US3 — 變更密碼（登入態）
+    Route::patch('/profile/password', [PasswordController::class, 'change']);
 });

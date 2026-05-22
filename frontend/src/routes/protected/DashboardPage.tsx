@@ -49,10 +49,10 @@ export function DashboardPage() {
           )}
           <nav className="mt-6 flex gap-4 text-sm">
             <Link to="/profile" className="text-indigo-600 hover:text-indigo-500">
-              個人資料 (P2)
+              個人資料
             </Link>
             <Link to="/password" className="text-indigo-600 hover:text-indigo-500">
-              變更密碼 (P3)
+              變更密碼
             </Link>
           </nav>
         </section>

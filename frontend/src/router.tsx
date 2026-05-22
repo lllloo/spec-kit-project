@@ -1,9 +1,12 @@
 import { createBrowserRouter, Navigate } from 'react-router';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ForgotPasswordPage } from './routes/auth/ForgotPasswordPage';
 import { LoginPage } from './routes/auth/LoginPage';
 import { RegisterPage } from './routes/auth/RegisterPage';
+import { ResetPasswordPage } from './routes/auth/ResetPasswordPage';
 import { VerifyEmailPage } from './routes/auth/VerifyEmailPage';
 import { DashboardPage } from './routes/protected/DashboardPage';
+import { PasswordPage } from './routes/protected/PasswordPage';
 import { ProfilePage } from './routes/protected/ProfilePage';
 
 export const router = createBrowserRouter([
@@ -15,16 +18,15 @@ export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   { path: '/register', element: <RegisterPage /> },
   { path: '/verify-email', element: <VerifyEmailPage /> },
-  // P3 placeholders（US3 將實作）
-  { path: '/forgot-password', element: <PlaceholderPage title="忘記密碼" hint="US3 將實作" /> },
-  { path: '/reset-password', element: <PlaceholderPage title="重設密碼" hint="US3 將實作" /> },
+  { path: '/forgot-password', element: <ForgotPasswordPage /> },
+  { path: '/reset-password', element: <ResetPasswordPage /> },
   // _protected：需登入
   {
     element: <ProtectedRoute />,
     children: [
       { path: '/dashboard', element: <DashboardPage /> },
       { path: '/profile', element: <ProfilePage /> },
-      { path: '/password', element: <PlaceholderPage title="變更密碼" hint="US3 將實作" /> },
+      { path: '/password', element: <PasswordPage /> },
     ],
   },
   // 404

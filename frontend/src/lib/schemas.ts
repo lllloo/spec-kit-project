@@ -48,3 +48,20 @@ export type ProfileInput = z.infer<typeof profileSchema>;
 
 export const AVATAR_MAX_BYTES = 2 * 1024 * 1024;  // 2 MB
 export const AVATAR_ACCEPT = ['image/jpeg', 'image/png', 'image/webp'] as const;
+
+// US3 — Password
+export const changePasswordSchema = z.object({
+  current_password: z.string().min(1, '請輸入目前密碼'),
+  new_password: passwordSchema,
+});
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
+export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+});
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = z.object({
+  password: passwordSchema,
+});
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;

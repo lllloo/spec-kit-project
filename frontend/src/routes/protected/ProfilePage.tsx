@@ -15,9 +15,14 @@ export function ProfilePage() {
       <div className="mx-auto max-w-3xl">
         <header className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-900">個人資料</h1>
-          <Link to="/dashboard" className="text-sm text-indigo-600 hover:text-indigo-500">
-            ← 回 dashboard
-          </Link>
+          <nav className="flex items-center gap-4 text-sm">
+            <Link to="/password" className="text-indigo-600 hover:text-indigo-500">
+              變更密碼
+            </Link>
+            <Link to="/dashboard" className="text-indigo-600 hover:text-indigo-500">
+              ← 回 dashboard
+            </Link>
+          </nav>
         </header>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
