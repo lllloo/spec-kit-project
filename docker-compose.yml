@@ -1,0 +1,97 @@
+# 對應 plan.md R3/R4/R5：MySQL 8.4、Mailpit、Redis
+# + backend app (Laravel dev server) 與 queue worker（共用 image）
+# 已避開現有 laravel-react-boilerplate 站台佔用的 port 80 / 8025
+# 對外公開端口：app 8000、MySQL 3306、Mailpit SMTP 1025、Mailpit UI 8026、Redis 6379
+
+x-app-base: &app-base
+  build:
+    context: ./backend
+    dockerfile: .docker/Dockerfile
+  image: spec-kit/backend:latest
+  volumes:
+    - ./backend:/var/www/html
+  environment:
+    # 容器內部以 service 名解析；host-side 客戶端仍可用 localhost:3306 等
+    DB_HOST: mysql
+    MAIL_HOST: mailpit
+    REDIS_HOST: redis
+  depends_on:
+    mysql:
+      condition: service_healthy
+    mailpit:
+      condition: service_started
+    redis:
+      condition: service_healthy
+  networks:
+    - spec-kit
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: spec-kit-mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: member_system
+      MYSQL_USER: sail
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ALLOW_EMPTY_PASSWORD: "no"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - spec-kit
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: spec-kit-mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP
+      - "8026:8025"  # Web UI（host 8025 已被 boilerplate 站台佔用）
+    networks:
+      - spec-kit
+
+  redis:
+    image: redis:7-alpine
+    container_name: spec-kit-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - spec-kit
+
+  app:
+    <<: *app-base
+    container_name: spec-kit-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    # 預設 CMD 即 php artisan serve，無需覆蓋
+
+  queue:
+    <<: *app-base
+    container_name: spec-kit-queue
+    restart: unless-stopped
+    command: php artisan queue:work --tries=3 --timeout=60 --sleep=3
+
+volumes:
+  mysql-data:
+  redis-data:
+
+networks:
+  spec-kit:
+    driver: bridge

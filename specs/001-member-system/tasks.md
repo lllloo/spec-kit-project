@@ -30,16 +30,16 @@ description: "Implementation tasks for 001-member-system"
 
 **Purpose**：建立 monorepo 結構、初始化兩端框架與基礎工具鏈
 
-- [ ] T001 建立 monorepo 目錄結構（`backend/`、`frontend/`、`e2e/`），於 repo root 建 `docker-compose.yml`（mysql:8.4、mailpit、redis 三服務，對應 R3/R4/R5）
-- [ ] T002 [P] 初始化 Laravel 12 專案於 `backend/`（`composer create-project laravel/laravel . "^12.0"`），裝 Fortify 與 Sanctum：`composer require laravel/fortify laravel/sanctum`
-- [ ] T003 [P] 初始化 Vite + React 19 專案於 `frontend/`（`pnpm create vite . --template react-ts`），裝核心依賴：`pnpm add react-router@^7 @tanstack/react-query@^5 react-hook-form@^7 zod@^3 tailwindcss@^4 @tailwindcss/vite`
-- [ ] T004 [P] 初始化 Playwright 專案於 `e2e/`（`pnpm create playwright@latest`），設定 `e2e/playwright.config.ts` baseURL = `http://localhost:5173`
-- [ ] T005 [P] 設 backend lint/format：`composer require --dev laravel/pint pestphp/pest pestphp/pest-plugin-laravel`，加 `backend/pint.json`
-- [ ] T006 [P] 設 frontend lint/format：`pnpm add -D eslint prettier eslint-plugin-react-hooks vitest @testing-library/react @testing-library/jest-dom jsdom`；建立 `frontend/eslint.config.js`、`frontend/.prettierrc`
-- [ ] T007 [P] 設定 `frontend/vite.config.ts`：Tailwind v4 plugin、`server.proxy['/api'] = 'http://localhost:8000'`、`server.proxy['/sanctum'] = 'http://localhost:8000'`
-- [ ] T008 [P] 設定 `frontend/src/index.css` 引入 `@import "tailwindcss";`、`frontend/tailwind.config.ts`（v4 zero-config 可選）
-- [ ] T009 複製 `backend/.env.example` → `backend/.env` 並設定：`APP_URL=http://localhost:8000`、`SANCTUM_STATEFUL_DOMAINS=localhost:5173`、`SESSION_DOMAIN=localhost`、`SESSION_DRIVER=database`、`QUEUE_CONNECTION=database`、`MAIL_MAILER=smtp`、`MAIL_HOST=localhost`、`MAIL_PORT=1025`、`DB_*` 對應 docker-compose
-- [ ] T010 跑 `docker compose up -d`、`backend>php artisan key:generate`、`backend>php artisan storage:link`，驗證 mysql/mailpit 可連線
+- [X] T001 建立 monorepo 目錄結構（`backend/`、`frontend/`、`e2e/`），於 repo root 建 `docker-compose.yml`（mysql:8.4、mailpit、redis 三服務，對應 R3/R4/R5）
+- [X] T002 [P] 初始化 Laravel 12 專案於 `backend/`（`composer create-project laravel/laravel . "^12.0"`），裝 Fortify 與 Sanctum：`composer require laravel/fortify laravel/sanctum`
+- [X] T003 [P] 初始化 Vite + React 19 專案於 `frontend/`（`pnpm create vite . --template react-ts`），裝核心依賴：`pnpm add react-router@^7 @tanstack/react-query@^5 react-hook-form@^7 zod@^3 tailwindcss@^4 @tailwindcss/vite`
+- [X] T004 [P] 初始化 Playwright 專案於 `e2e/`（`pnpm create playwright@latest`），設定 `e2e/playwright.config.ts` baseURL = `http://localhost:5173`
+- [X] T005 [P] 設 backend lint/format：`composer require --dev laravel/pint pestphp/pest pestphp/pest-plugin-laravel`，加 `backend/pint.json`
+- [X] T006 [P] 設 frontend lint/format：`pnpm add -D eslint prettier eslint-plugin-react-hooks vitest @testing-library/react @testing-library/jest-dom jsdom`；建立 `frontend/eslint.config.js`、`frontend/.prettierrc`
+- [X] T007 [P] 設定 `frontend/vite.config.ts`：Tailwind v4 plugin、`server.proxy['/api'] = 'http://localhost:8000'`、`server.proxy['/sanctum'] = 'http://localhost:8000'`
+- [X] T008 [P] 設定 `frontend/src/index.css` 引入 `@import "tailwindcss";`、`frontend/tailwind.config.ts`（v4 zero-config 可選）
+- [X] T009 複製 `backend/.env.example` → `backend/.env` 並設定：`APP_URL=http://localhost:8000`、`SANCTUM_STATEFUL_DOMAINS=localhost:5173`、`SESSION_DOMAIN=localhost`、`SESSION_DRIVER=database`、`QUEUE_CONNECTION=database`、`MAIL_MAILER=smtp`、`MAIL_HOST=localhost`、`MAIL_PORT=1025`、`DB_*` 對應 docker-compose
+- [X] T010 跑 `docker compose up -d`、`backend>php artisan key:generate`、`backend>php artisan storage:link`，驗證 mysql/mailpit 可連線
 
 ---
 
