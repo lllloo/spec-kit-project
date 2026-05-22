@@ -149,28 +149,28 @@ description: "Implementation tasks for 001-member-system"
 
 ### Tests for US2（先寫，必須失敗）⚠️
 
-- [ ] T065 [P] [US2] Backend feature test `backend/tests/Feature/Profile/ShowProfileTest.php`：未登入 401；登入後回 200 含 Member resource
-- [ ] T066 [P] [US2] Backend feature test `backend/tests/Feature/Profile/UpdateProfileTest.php`：display_name 64 字以內成功；超長 422
-- [ ] T067 [P] [US2] Backend feature test `backend/tests/Feature/Profile/UploadAvatarTest.php`：合法 jpg/png/webp 成功；超 2MB 422；exe 偽裝 422；上傳後舊檔刪除
-- [ ] T068 [P] [US2] Frontend Vitest `frontend/tests/forms/ProfileForm.test.tsx`：dirty 狀態 disabled submit；server 422 渲染欄位錯誤
-- [ ] T069 [P] [US2] Frontend Vitest `frontend/tests/components/AvatarUploader.test.tsx`：drag-drop 行為、preview、檔案大小驗證
-- [ ] T070 [P] [US2] Playwright `e2e/tests/profile.spec.ts`：完整 P2 流程
+- [X] T065 [P] [US2] Backend feature test `backend/tests/Feature/Profile/ShowProfileTest.php`：未登入 401；登入後回 200 含 Member resource
+- [X] T066 [P] [US2] Backend feature test `backend/tests/Feature/Profile/UpdateProfileTest.php`：display_name 64 字以內成功；超長 422
+- [X] T067 [P] [US2] Backend feature test `backend/tests/Feature/Profile/UploadAvatarTest.php`：合法 jpg/png/webp 成功；超 2MB 422；exe 偽裝 422；上傳後舊檔刪除
+- [X] T068 [P] [US2] Frontend Vitest `frontend/tests/forms/ProfileForm.test.tsx`：dirty 狀態 disabled submit；server 422 渲染欄位錯誤
+- [X] T069 [P] [US2] Frontend Vitest `frontend/tests/components/AvatarUploader.test.tsx`：drag-drop 行為、preview、檔案大小驗證
+- [X] T070 [P] [US2] Playwright `e2e/tests/profile.spec.ts`：完整 P2 流程
 
 ### Backend 實作 US2
 
-- [ ] T071 [US2] 建立 `backend/app/Services/ProfileService.php`（取/改個資、寫 audit）
-- [ ] T072 [US2] 建立 `backend/app/Services/AvatarService.php`（接收 UploadedFile → 驗證 mime+size → 存 `storage/app/public/avatars/{uuid}.{ext}` → 刪舊檔 → 更新 members.avatar_path）
-- [ ] T073 [US2] 建立 `backend/app/Http/Requests/Profile/UpdateProfileRequest.php`、`UploadAvatarRequest.php`（mimes:jpg,png,webp,max:2048）
-- [ ] T074 [US2] 建立 `backend/app/Http/Controllers/Api/V1/ProfileController.php`：`show`、`update`、`uploadAvatar`
-- [ ] T075 [US2] 於 `backend/routes/api.php` 註冊：GET `/v1/profile`、PATCH `/v1/profile`、POST `/v1/profile/avatar`（皆 auth:sanctum）
+- [X] T071 [US2] 建立 `backend/app/Services/ProfileService.php`（取/改個資、寫 audit）
+- [X] T072 [US2] 建立 `backend/app/Services/AvatarService.php`（接收 UploadedFile → 驗證 mime+size → 存 `storage/app/public/avatars/{uuid}.{ext}` → 刪舊檔 → 更新 members.avatar_path）
+- [X] T073 [US2] 建立 `backend/app/Http/Requests/Profile/UpdateProfileRequest.php`、`UploadAvatarRequest.php`（mimes:jpg,png,webp,max:2048）
+- [X] T074 [US2] 建立 `backend/app/Http/Controllers/Api/V1/ProfileController.php`：`show`、`update`、`uploadAvatar`
+- [X] T075 [US2] 於 `backend/routes/api.php` 註冊：GET `/v1/profile`、PATCH `/v1/profile`、POST `/v1/profile/avatar`（皆 auth:sanctum）
 
 ### Frontend 實作 US2
 
-- [ ] T076 [P] [US2] 補 `frontend/src/lib/schemas.ts`：profileSchema、avatarSchema
-- [ ] T077 [P] [US2] 建立 `frontend/src/components/forms/ProfileForm.tsx`（react-hook-form、dirty/disabled、optimistic update）
-- [ ] T078 [P] [US2] 建立 `frontend/src/components/AvatarUploader.tsx`（drag-drop、preview、size guard）
-- [ ] T079 [US2] 建立 `frontend/src/routes/_protected/profile.tsx`：左欄個資表單、右欄頭像；含 Logout 按鈕
-- [ ] T080 [US2] 於 dashboard 加入 `Link to="/profile"` 入口
+- [X] T076 [P] [US2] 補 `frontend/src/lib/schemas.ts`：profileSchema、avatarSchema
+- [X] T077 [P] [US2] 建立 `frontend/src/components/forms/ProfileForm.tsx`（react-hook-form、dirty/disabled、optimistic update）
+- [X] T078 [P] [US2] 建立 `frontend/src/components/AvatarUploader.tsx`（drag-drop、preview、size guard）
+- [X] T079 [US2] 建立 `frontend/src/routes/_protected/profile.tsx`：左欄個資表單、右欄頭像；含 Logout 按鈕
+- [X] T080 [US2] 於 dashboard 加入 `Link to="/profile"` 入口
 
 **Checkpoint**：US1 + US2 皆獨立可用
 

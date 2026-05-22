@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 /**
@@ -29,8 +30,14 @@ Route::prefix('auth')->group(function (): void {
         ->middleware('throttle:login');
 });
 
-// US1：需登入
+// US1 + US2：需登入
 Route::middleware('auth:sanctum')->group(function (): void {
+    // US1
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/me', [AuthController::class, 'me']);
+
+    // US2 — 個資查/改、頭像上傳
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::patch('/profile', [ProfileController::class, 'update']);
+    Route::post('/profile/avatar', [ProfileController::class, 'uploadAvatar']);
 });

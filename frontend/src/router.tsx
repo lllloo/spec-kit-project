@@ -4,6 +4,7 @@ import { LoginPage } from './routes/auth/LoginPage';
 import { RegisterPage } from './routes/auth/RegisterPage';
 import { VerifyEmailPage } from './routes/auth/VerifyEmailPage';
 import { DashboardPage } from './routes/protected/DashboardPage';
+import { ProfilePage } from './routes/protected/ProfilePage';
 
 export const router = createBrowserRouter([
   {
@@ -22,7 +23,7 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute />,
     children: [
       { path: '/dashboard', element: <DashboardPage /> },
-      { path: '/profile', element: <PlaceholderPage title="個人資料" hint="US2 將實作" /> },
+      { path: '/profile', element: <ProfilePage /> },
       { path: '/password', element: <PlaceholderPage title="變更密碼" hint="US3 將實作" /> },
     ],
   },

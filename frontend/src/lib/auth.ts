@@ -4,10 +4,12 @@ import { api, ApiError } from './api';
 export type Member = {
   uuid: string;
   email: string;
+  email_verified: boolean;
   email_verified_at: string | null;
   display_name: string | null;
-  avatar_path: string | null;
+  avatar_url: string | null;
   contact_info: string | null;
+  last_login_at: string | null;
 };
 
 export const sessionQueryKey = ['auth', 'me'] as const;

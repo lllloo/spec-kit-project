@@ -30,3 +30,21 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export const verifyTokenSchema = z.object({
   token: z.string().min(32, '驗證連結不完整'),
 });
+
+// US2 — Profile
+export const profileSchema = z.object({
+  display_name: z
+    .string()
+    .max(64, '顯示名稱不可超過 64 字元')
+    .optional()
+    .or(z.literal('')),
+  contact_info: z
+    .string()
+    .max(255, '聯絡資訊不可超過 255 字元')
+    .optional()
+    .or(z.literal('')),
+});
+export type ProfileInput = z.infer<typeof profileSchema>;
+
+export const AVATAR_MAX_BYTES = 2 * 1024 * 1024;  // 2 MB
+export const AVATAR_ACCEPT = ['image/jpeg', 'image/png', 'image/webp'] as const;
