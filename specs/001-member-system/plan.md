@@ -13,7 +13,7 @@
 **Language/Version**: PHP 8.3 (Laravel 12) / TypeScript 5.6 (React 19)
 
 **Primary Dependencies**:
-- Backend：Laravel 12, Laravel Fortify（auth 流程基礎元件）, Laravel Sanctum（SPA cookie session）, Spatie laravel-permission（保留擴充點，本期不啟用 role），Pest 3（測試）
+- Backend：Laravel 12, Laravel Fortify（auth 流程基礎元件）, Laravel Sanctum（SPA cookie session）, Pest 3（測試）
 - Frontend：React 19, Vite 6, React Router 7（data router）, TanStack Query 5, react-hook-form 7, Tailwind CSS v4, Zod 3
 - E2E：Playwright 1.49
 

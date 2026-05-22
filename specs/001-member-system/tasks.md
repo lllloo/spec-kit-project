@@ -53,17 +53,17 @@ description: "Implementation tasks for 001-member-system"
 
 - [ ] T011 建立 Member migration `backend/database/migrations/2026_05_22_000001_create_members_table.php`（依 data-model.md E1 全欄位 + collation utf8mb4_unicode_ci + soft delete）
 - [ ] T012 建立 Credential migration `backend/database/migrations/2026_05_22_000002_create_credentials_table.php`（一對一 FK to members）
-- [ ] T013 [P] 建立 sessions migration `backend/database/migrations/2026_05_22_000005_create_sessions_table.php`（`php artisan session:table` 產出，依 data-model.md E5）
+- [ ] T013 [P] 建立 sessions migration：執行 `php artisan session:table` 由 artisan 產出檔案於 `backend/database/migrations/`（檔名 timestamp 由 artisan 決定），欄位對齊 data-model.md E5
 - [ ] T014 [P] 建立 AuditEvent migration `backend/database/migrations/2026_05_22_000006_create_audit_events_table.php`（依 E6，含 INDEX(created_at)）
 - [ ] T015 跑 `php artisan migrate` 驗證 schema
-- [ ] T016 [P] 建立 `backend/app/Models/Member.php`（uuid 自動產生 + `HasApiTokens`、`Notifiable`、`SoftDeletes`、`hasOne(Credential::class)`、`hasMany(AuditEvent::class)`、隱藏 password 欄位）
+- [ ] T016 [P] 建立 `backend/app/Models/Member.php`（uuid 自動產生 + `Notifiable`、`SoftDeletes`、`hasOne(Credential::class)`、`hasMany(AuditEvent::class)`、隱藏 password 欄位；本期走 Sanctum SPA cookie session，不需 `HasApiTokens`）
 - [ ] T017 [P] 建立 `backend/app/Models/Credential.php`（belongsTo Member、bcrypt mutator on `password_hash`）
 - [ ] T018 [P] 建立 `backend/app/Models/AuditEvent.php`（fillable: member_id, event_type, result, ip_address, user_agent, metadata；無 update）
 - [ ] T019 [P] 建立 Factory `backend/database/factories/MemberFactory.php`（含 `verified()`、`unverified()`、`locked()` states）
 
 ### Backend — Auth pipeline 設定
 
-- [ ] T020 發佈 Fortify config：`php artisan vendor:publish --provider="Laravel\Fortify\FortifyServiceProvider"`；於 `backend/config/fortify.php` 關閉所有 views（純 JSON）、保留 `features` 全開
+- [ ] T020 發佈 Fortify config：`php artisan vendor:publish --provider="Laravel\Fortify\FortifyServiceProvider"`；於 `backend/config/fortify.php` 關閉所有 views（`'views' => false`，純 JSON）、`features` 明列為 `[registration, resetPasswords, emailVerification, updateProfileInformation, updatePasswords]`，**明確不啟用** `twoFactorAuthentication`（spec Clarifications Q2）
 - [ ] T021 發佈 Sanctum config：`php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"`；於 `backend/config/sanctum.php` 啟用 stateful domains by env
 - [ ] T022 設定 `backend/config/auth.php` 將 `users` provider model 改為 `App\Models\Member`，table 改為 `members`
 - [ ] T023 註冊 Sanctum middleware 於 `backend/bootstrap/app.php` API stack：`EnsureFrontendRequestsAreStateful::class`
@@ -126,7 +126,7 @@ description: "Implementation tasks for 001-member-system"
 - [ ] T055 [US1] 建立 `backend/app/Http/Controllers/Api/V1/AuthController.php`：`register`、`verifyEmail`、`resendVerification`、`login`、`logout`、`me`
 - [ ] T056 [US1] 於 `backend/routes/api.php` 註冊 US1 路由：POST `/v1/auth/register`（throttle:register）、POST `/v1/auth/email/verify`、POST `/v1/auth/email/resend`（throttle:register）、POST `/v1/auth/login`、POST `/v1/auth/logout`（auth:sanctum）、GET `/v1/auth/me`（auth:sanctum）
 - [ ] T057 [US1] 建立 `backend/app/Http/Resources/MemberResource.php`（對齊 contracts schema：uuid/email/email_verified/display_name/avatar_url/contact_info/last_login_at）
-- [ ] T058 [US1] 於 LoginService 實作 FR-016「記住我」：透過 Auth::guard()->attempt($credentials, $remember) 並設定 `config('session.lifetime')` 動態調整 cookie（remember=true → 14 天）
+- [ ] T058 [US1] 於 LoginService 實作 FR-016「記住我」：1) `backend/config/session.php` 設 `'expire_on_close' => true`，使未勾 remember 時 session cookie 隨關閉瀏覽器失效；2) 呼叫 `Auth::attempt($credentials, $remember)`，當 `$remember=true` 時 Laravel 寫入 `remember_*` cookie；3) 於 `backend/app/Http/Middleware/EnsureRememberCookieLifetime.php`（或於 AuthController 內 `Cookie::queue`）將 remember cookie 的 lifetime 覆寫為 14 天（預設 5 年），達到「14 天滑動續期」效果；補測：未勾 → cookie `Max-Age` 缺；勾 → 14 天
 
 ### Frontend 實作 US1
 
@@ -228,6 +228,8 @@ description: "Implementation tasks for 001-member-system"
 - [ ] T105 [P] 撰寫 repo root `README.md`（總覽、quickstart 連結）
 - [ ] T106 跑 `specs/001-member-system/quickstart.md` 手動 walkthrough 確認 P1 可走通
 - [ ] T107 跑全部測試 + Playwright，確認綠燈；補 missing edge case 測試
+- [ ] T108 [P] 建立 `e2e/tests/login-perf.spec.ts` 對 `/v1/auth/login` 連續打 100 次（含失敗情境），量測 p99 latency 並 assert < 2000 ms（SC-004）
+- [ ] T109 [P] 建立 `backend/tests/Feature/Security/BruteForceTest.php`：以 6 組錯誤密碼連打 → 確認第 6 次起回 429 lockout 且 audit `login.lockout` 已寫入（SC-006 baseline）；可選用 OWASP ZAP baseline 掃描作為 CI step（記錄於 `backend/README.md`）
 
 ---
 
@@ -262,7 +264,7 @@ description: "Implementation tasks for 001-member-system"
 - Phase 4 Frontend：T076~T078 [P]
 - Phase 5 Tests：T081~T085 全 [P]
 - Phase 5 Frontend：T095/T096 [P]
-- Phase 6：T100~T105 全 [P]
+- Phase 6：T100~T105、T108、T109 全 [P]
 
 ---
 
