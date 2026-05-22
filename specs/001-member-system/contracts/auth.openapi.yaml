@@ -1,0 +1,244 @@
+openapi: 3.1.0
+info:
+  title: Member System — Auth API
+  version: 1.0.0
+  description: |
+    註冊、Email 驗證、登入/登出、忘記密碼、重設密碼端點。
+    對應 spec.md FR-001~005, FR-009~016；採 Sanctum SPA cookie session
+    （CSRF 由 XSRF-TOKEN cookie + X-XSRF-TOKEN header 處理）。
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Dev
+  - url: https://example.com/api/v1
+    description: Prod
+
+components:
+  securitySchemes:
+    sanctumSession:
+      type: apiKey
+      in: cookie
+      name: spec_kit_session
+  schemas:
+    Member:
+      type: object
+      required: [uuid, email, email_verified, display_name, avatar_url, contact_info]
+      properties:
+        uuid: { type: string, format: uuid }
+        email: { type: string, format: email }
+        email_verified: { type: boolean }
+        display_name: { type: string, nullable: true, maxLength: 64 }
+        avatar_url: { type: string, nullable: true, format: uri }
+        contact_info: { type: string, nullable: true, maxLength: 255 }
+        last_login_at: { type: string, nullable: true, format: date-time }
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string }
+    GenericMessage:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+
+paths:
+  /sanctum/csrf-cookie:
+    get:
+      summary: 取得 CSRF cookie（Sanctum SPA 必要步驟）
+      tags: [auth]
+      responses:
+        '204': { description: CSRF cookie set }
+
+  /auth/register:
+    post:
+      summary: 註冊新會員（FR-001~003, FR-015）
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email, maxLength: 254 }
+                password: { type: string, minLength: 8, pattern: '^(?=.*[A-Za-z])(?=.*\d).+$' }
+                display_name: { type: string, maxLength: 64 }
+      responses:
+        '201':
+          description: 已建立未驗證帳號並寄出驗證信
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericMessage' }
+        '422':
+          description: 驗證失敗（含「Email 已被使用」FR-001）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '429':
+          description: 超過 IP/h ≤10 節流（FR-015）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /auth/email/verify:
+    post:
+      summary: 驗證 Email（消費 token）(FR-003, FR-013)
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token: { type: string, minLength: 32 }
+      responses:
+        '200':
+          description: 驗證成功
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericMessage' }
+        '410':
+          description: token 已過期或已使用（FR-010, FR-013）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /auth/email/resend:
+    post:
+      summary: 重發驗證信（FR-013：舊連結作廢）
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        '200':
+          description: 一律回相同訊息（避免帳號枚舉，FR-012）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericMessage' }
+        '429':
+          description: 節流（FR-015）
+
+  /auth/login:
+    post:
+      summary: 登入（FR-004, FR-016）
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+                remember: { type: boolean, default: false, description: '勾選後 14 天滑動續期（FR-016）' }
+      responses:
+        '200':
+          description: 登入成功，session cookie 已設定
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/GenericMessage'
+                  - type: object
+                    properties:
+                      member: { $ref: '#/components/schemas/Member' }
+        '422':
+          description: 認證失敗 / 帳號未驗證 / 帳號被鎖定（一致訊息 FR-012）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '429':
+          description: 達到登入嘗試上限被鎖定（FR-004）
+
+  /auth/logout:
+    post:
+      summary: 登出（FR-005）
+      tags: [auth]
+      security:
+        - sanctumSession: []
+      responses:
+        '204': { description: 已登出 }
+
+  /auth/me:
+    get:
+      summary: 取得目前登入會員（前端 session 狀態查詢）
+      tags: [auth]
+      security:
+        - sanctumSession: []
+      responses:
+        '200':
+          description: 已登入
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Member' }
+        '401':
+          description: 未登入
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /auth/password/forgot:
+    post:
+      summary: 申請密碼重設信（FR-009, FR-013, FR-015）
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        '200':
+          description: 一律回相同訊息（FR-009 避免帳號枚舉）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericMessage' }
+        '429':
+          description: 節流（同 IP/h ≤10 或同 Email/h ≤3，FR-015）
+
+  /auth/password/reset:
+    post:
+      summary: 重設密碼（FR-010, FR-013）
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, password]
+              properties:
+                token: { type: string, minLength: 32 }
+                password: { type: string, minLength: 8, pattern: '^(?=.*[A-Za-z])(?=.*\d).+$' }
+      responses:
+        '200':
+          description: 重設成功；其他 session 已失效（FR-008 衍生）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericMessage' }
+        '410':
+          description: token 已過期或已使用
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
