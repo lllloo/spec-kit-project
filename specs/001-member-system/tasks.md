@@ -103,39 +103,39 @@ description: "Implementation tasks for 001-member-system"
 
 ### Tests for US1（先寫，必須失敗）⚠️
 
-- [ ] T038 [P] [US1] Backend feature test `backend/tests/Feature/Auth/RegisterTest.php`：正常註冊回 201；重複 Email 回 422；密碼太短回 422；超過 IP/h 10 次回 429
-- [ ] T039 [P] [US1] Backend feature test `backend/tests/Feature/Auth/EmailVerificationTest.php`：有效 token → email_verified_at 變非 NULL；過期 token → 410；舊 token 在新 token 發出後 → 410（FR-013）
-- [ ] T040 [P] [US1] Backend feature test `backend/tests/Feature/Auth/LoginTest.php`：正確憑證 + verified → 200 設 session cookie；未驗證 → 422 一致訊息；錯誤密碼 5 次後 → 429 lockout；勾 remember → cookie lifetime 14 天
-- [ ] T041 [P] [US1] Backend feature test `backend/tests/Feature/Auth/LogoutTest.php`：POST /logout 後 session 失效，/me 回 401
-- [ ] T042 [P] [US1] Backend feature test `backend/tests/Feature/Auth/MeTest.php`：未登入回 401；登入後回 Member resource
-- [ ] T043 [P] [US1] Backend feature test `backend/tests/Feature/Auth/ResendVerificationTest.php`：重發後舊 token 失效；無論 email 是否存在皆 200（FR-009 同 pattern）
-- [ ] T044 [P] [US1] Frontend Vitest `frontend/tests/forms/RegisterForm.test.tsx`：必填驗證、密碼強度 client 端提示、submit 後成功訊息
-- [ ] T045 [P] [US1] Frontend Vitest `frontend/tests/forms/LoginForm.test.tsx`：帳號鎖定錯誤訊息渲染、Remember me checkbox 行為
-- [ ] T046 [P] [US1] Frontend Vitest `frontend/tests/routes/VerifyEmailPage.test.tsx`：?token=xxx 自動 POST 並顯示成功/失敗
-- [ ] T047 [P] [US1] Playwright `e2e/tests/registration.spec.ts`：完整 P1 流程（含讀 Mailpit API 取信）
+- [X] T038 [P] [US1] Backend feature test `backend/tests/Feature/Auth/RegisterTest.php`：正常註冊回 201；重複 Email 回 422；密碼太短回 422；超過 IP/h 10 次回 429
+- [X] T039 [P] [US1] Backend feature test `backend/tests/Feature/Auth/EmailVerificationTest.php`：有效 token → email_verified_at 變非 NULL；過期 token → 410；舊 token 在新 token 發出後 → 410（FR-013）
+- [X] T040 [P] [US1] Backend feature test `backend/tests/Feature/Auth/LoginTest.php`：正確憑證 + verified → 200 設 session cookie；未驗證 → 422 一致訊息；錯誤密碼 5 次後 → 429 lockout；勾 remember → cookie lifetime 14 天
+- [X] T041 [P] [US1] Backend feature test `backend/tests/Feature/Auth/LogoutTest.php`：POST /logout 後 session 失效，/me 回 401
+- [X] T042 [P] [US1] Backend feature test `backend/tests/Feature/Auth/MeTest.php`：未登入回 401；登入後回 Member resource
+- [X] T043 [P] [US1] Backend feature test `backend/tests/Feature/Auth/ResendVerificationTest.php`：重發後舊 token 失效；無論 email 是否存在皆 200（FR-009 同 pattern）
+- [X] T044 [P] [US1] Frontend Vitest `frontend/tests/forms/RegisterForm.test.tsx`：必填驗證、密碼強度 client 端提示、submit 後成功訊息
+- [X] T045 [P] [US1] Frontend Vitest `frontend/tests/forms/LoginForm.test.tsx`：帳號鎖定錯誤訊息渲染、Remember me checkbox 行為
+- [X] T046 [P] [US1] Frontend Vitest `frontend/tests/routes/VerifyEmailPage.test.tsx`：?token=xxx 自動 POST 並顯示成功/失敗
+- [X] T047 [P] [US1] Playwright `e2e/tests/registration.spec.ts`：完整 P1 流程（含讀 Mailpit API 取信）
 
 ### Backend 實作 US1
 
-- [ ] T048 [US1] 建立 EmailVerificationToken migration `backend/database/migrations/2026_05_22_000003_create_email_verification_tokens_table.php`（依 E3）
-- [ ] T049 [US1] 建立 `backend/app/Models/EmailVerificationToken.php`（belongsTo Member、scope active）
-- [ ] T050 [P] [US1] 建立 `backend/app/Notifications/VerifyEmailNotification.php` implements `ShouldQueue`，內容含 frontend `/verify-email?token=...` 連結
-- [ ] T051 [US1] 建立 `backend/app/Services/RegistrationService.php`（建立 Member + Credential + token；觸發 Notification；寫 AuditEvent `registration`）
-- [ ] T052 [US1] 建立 `backend/app/Services/EmailVerificationService.php`（驗證 token、消費、更新 email_verified_at；舊 token 作廢；寫 audit）
-- [ ] T053 [US1] 建立 `backend/app/Services/LoginService.php`（驗證憑證、檢查 verified、檢查 locked_until、寫 audit；失敗計次與鎖定）
-- [ ] T054 [US1] 建立 `backend/app/Http/Requests/Auth/RegisterRequest.php`、`LoginRequest.php`（FR-001/002 驗證、Email lowercase normalize）
-- [ ] T055 [US1] 建立 `backend/app/Http/Controllers/Api/V1/AuthController.php`：`register`、`verifyEmail`、`resendVerification`、`login`、`logout`、`me`
-- [ ] T056 [US1] 於 `backend/routes/api.php` 註冊 US1 路由：POST `/v1/auth/register`（throttle:register）、POST `/v1/auth/email/verify`、POST `/v1/auth/email/resend`（throttle:register）、POST `/v1/auth/login`、POST `/v1/auth/logout`（auth:sanctum）、GET `/v1/auth/me`（auth:sanctum）
-- [ ] T057 [US1] 建立 `backend/app/Http/Resources/MemberResource.php`（對齊 contracts schema：uuid/email/email_verified/display_name/avatar_url/contact_info/last_login_at）
-- [ ] T058 [US1] 於 LoginService 實作 FR-016「記住我」+ 滑動續期：1) `backend/config/session.php` 設 `'expire_on_close' => true`，未勾 remember 時 session cookie 隨關閉瀏覽器失效；2) 呼叫 `Auth::attempt($credentials, $remember)`，`$remember=true` 時 Laravel 寫入 `remember_*` cookie；3) 建立 `backend/app/Http/Middleware/SlidingRememberCookie.php`：對**每個已驗證請求**（`Auth::viaRemember()` 或一般 authenticated 皆同），讀取目前 `remember_*` cookie 值並以 `Cookie::queue($name, $value, 60*24*14)` 重新寫入，達成「14 天滑動續期」（預設 Laravel 是 5 年一次性）；4) 於 `backend/bootstrap/app.php` 將該 middleware append 進 `web` group（Sanctum SPA 走 web stack）；補測：a) 未勾 → response cookie 無 `remember_*` Max-Age；b) 勾 → Max-Age 約 14 天；c) **滑動**：時鐘前進 7 天後再請求 → response cookie Max-Age 再次回到 14 天（用 `Carbon::setTestNow()` 模擬）
+- [X] T048 [US1] 建立 EmailVerificationToken migration `backend/database/migrations/2026_05_22_000003_create_email_verification_tokens_table.php`（依 E3）
+- [X] T049 [US1] 建立 `backend/app/Models/EmailVerificationToken.php`（belongsTo Member、scope active）
+- [X] T050 [P] [US1] 建立 `backend/app/Notifications/VerifyEmailNotification.php` implements `ShouldQueue`，內容含 frontend `/verify-email?token=...` 連結
+- [X] T051 [US1] 建立 `backend/app/Services/RegistrationService.php`（建立 Member + Credential + token；觸發 Notification；寫 AuditEvent `registration`）
+- [X] T052 [US1] 建立 `backend/app/Services/EmailVerificationService.php`（驗證 token、消費、更新 email_verified_at；舊 token 作廢；寫 audit）
+- [X] T053 [US1] 建立 `backend/app/Services/LoginService.php`（驗證憑證、檢查 verified、檢查 locked_until、寫 audit；失敗計次與鎖定）
+- [X] T054 [US1] 建立 `backend/app/Http/Requests/Auth/RegisterRequest.php`、`LoginRequest.php`（FR-001/002 驗證、Email lowercase normalize）
+- [X] T055 [US1] 建立 `backend/app/Http/Controllers/Api/V1/AuthController.php`：`register`、`verifyEmail`、`resendVerification`、`login`、`logout`、`me`
+- [X] T056 [US1] 於 `backend/routes/api.php` 註冊 US1 路由：POST `/v1/auth/register`（throttle:register）、POST `/v1/auth/email/verify`、POST `/v1/auth/email/resend`（throttle:register）、POST `/v1/auth/login`、POST `/v1/auth/logout`（auth:sanctum）、GET `/v1/auth/me`（auth:sanctum）
+- [X] T057 [US1] 建立 `backend/app/Http/Resources/MemberResource.php`（對齊 contracts schema：uuid/email/email_verified/display_name/avatar_url/contact_info/last_login_at）
+- [X] T058 [US1] 於 LoginService 實作 FR-016「記住我」+ 滑動續期：1) `backend/config/session.php` 設 `'expire_on_close' => true`，未勾 remember 時 session cookie 隨關閉瀏覽器失效；2) 呼叫 `Auth::attempt($credentials, $remember)`，`$remember=true` 時 Laravel 寫入 `remember_*` cookie；3) 建立 `backend/app/Http/Middleware/SlidingRememberCookie.php`：對**每個已驗證請求**（`Auth::viaRemember()` 或一般 authenticated 皆同），讀取目前 `remember_*` cookie 值並以 `Cookie::queue($name, $value, 60*24*14)` 重新寫入，達成「14 天滑動續期」（預設 Laravel 是 5 年一次性）；4) 於 `backend/bootstrap/app.php` 將該 middleware append 進 `web` group（Sanctum SPA 走 web stack）；補測：a) 未勾 → response cookie 無 `remember_*` Max-Age；b) 勾 → Max-Age 約 14 天；c) **滑動**：時鐘前進 7 天後再請求 → response cookie Max-Age 再次回到 14 天（用 `Carbon::setTestNow()` 模擬）
 
 ### Frontend 實作 US1
 
-- [ ] T059 [P] [US1] 建立 `frontend/src/lib/schemas.ts`（Zod schemas：registerSchema、loginSchema、verifyTokenSchema，與 contracts 對齊）
-- [ ] T060 [P] [US1] 建立 `frontend/src/components/forms/RegisterForm.tsx`（react-hook-form + Zod resolver、client-side 密碼強度提示、422 server error map）
-- [ ] T061 [P] [US1] 建立 `frontend/src/components/forms/LoginForm.tsx`（含 Remember me checkbox、429 lockout 訊息）
-- [ ] T062 [US1] 建立 `frontend/src/routes/(auth)/register.tsx`、`login.tsx`、`verify-email.tsx`（loader 解析 ?token、自動 POST、成功 navigate to /login）
-- [ ] T063 [US1] 建立 `frontend/src/routes/_protected/dashboard.tsx`（顯示「歡迎 {display_name 或 email}」、Logout 按鈕呼叫 POST /logout 後 redirect /login）
-- [ ] T064 [US1] 將 ProtectedRoute 套到 `_protected/*` route group；login 成功後跳 `?redirectTo` 或 `/dashboard`
+- [X] T059 [P] [US1] 建立 `frontend/src/lib/schemas.ts`（Zod schemas：registerSchema、loginSchema、verifyTokenSchema，與 contracts 對齊）
+- [X] T060 [P] [US1] 建立 `frontend/src/components/forms/RegisterForm.tsx`（react-hook-form + Zod resolver、client-side 密碼強度提示、422 server error map）
+- [X] T061 [P] [US1] 建立 `frontend/src/components/forms/LoginForm.tsx`（含 Remember me checkbox、429 lockout 訊息）
+- [X] T062 [US1] 建立 `frontend/src/routes/(auth)/register.tsx`、`login.tsx`、`verify-email.tsx`（loader 解析 ?token、自動 POST、成功 navigate to /login）
+- [X] T063 [US1] 建立 `frontend/src/routes/_protected/dashboard.tsx`（顯示「歡迎 {display_name 或 email}」、Logout 按鈕呼叫 POST /logout 後 redirect /login）
+- [X] T064 [US1] 將 ProtectedRoute 套到 `_protected/*` route group；login 成功後跳 `?redirectTo` 或 `/dashboard`
 
 **Checkpoint**：US1 全部測試綠燈 → MVP 可獨立交付（註冊→驗證→登入→登出）
 

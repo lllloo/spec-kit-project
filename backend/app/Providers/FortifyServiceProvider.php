@@ -28,6 +28,10 @@ class FortifyServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // 本期不使用 Fortify 自身註冊的路由（POST /register、POST /login 等），
+        // 所有 endpoint 由 App\Http\Controllers\Api\V1 自行實作於 /api/v1/auth/*
+        Fortify::ignoreRoutes();
+
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(
                 Str::lower((string) $request->input(Fortify::username())).'|'.$request->ip()

@@ -21,6 +21,14 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Sanctum SPA cookie session：API 群組需 stateful
         $middleware->statefulApi();
+
+        // FR-016「記住我」滑動續期：對每個已驗證請求 re-queue remember cookie 14 天
+        $middleware->web(append: [
+            \App\Http\Middleware\SlidingRememberCookie::class,
+        ]);
+        $middleware->api(append: [
+            \App\Http\Middleware\SlidingRememberCookie::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // 統一 JSON 錯誤格式（FR-012：一致、不洩漏內部狀態）
