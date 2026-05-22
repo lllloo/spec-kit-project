@@ -51,45 +51,45 @@ description: "Implementation tasks for 001-member-system"
 
 ### Backend — 共用 schema 與模型
 
-- [ ] T011 建立 Member migration `backend/database/migrations/2026_05_22_000001_create_members_table.php`（依 data-model.md E1 全欄位 + collation utf8mb4_unicode_ci + soft delete）
-- [ ] T012 建立 Credential migration `backend/database/migrations/2026_05_22_000002_create_credentials_table.php`（一對一 FK to members）
-- [ ] T013 [P] 建立 sessions migration：執行 `php artisan session:table` 由 artisan 產出檔案於 `backend/database/migrations/`（檔名 timestamp 由 artisan 決定），欄位對齊 data-model.md E5
-- [ ] T014 [P] 建立 AuditEvent migration `backend/database/migrations/2026_05_22_000006_create_audit_events_table.php`（依 E6，含 INDEX(created_at)）
-- [ ] T015 跑 `php artisan migrate` 驗證 schema
-- [ ] T016 [P] 建立 `backend/app/Models/Member.php`（uuid 自動產生 + `Notifiable`、`SoftDeletes`、`hasOne(Credential::class)`、`hasMany(AuditEvent::class)`、隱藏 password 欄位；本期走 Sanctum SPA cookie session，不需 `HasApiTokens`）
-- [ ] T017 [P] 建立 `backend/app/Models/Credential.php`（belongsTo Member、bcrypt mutator on `password_hash`）
-- [ ] T018 [P] 建立 `backend/app/Models/AuditEvent.php`（fillable: member_id, event_type, result, ip_address, user_agent, metadata；無 update）
-- [ ] T019 [P] 建立 Factory `backend/database/factories/MemberFactory.php`（含 `verified()`、`unverified()`、`locked()` states）
+- [X] T011 建立 Member migration `backend/database/migrations/2026_05_22_000001_create_members_table.php`（依 data-model.md E1 全欄位 + collation utf8mb4_unicode_ci + soft delete）
+- [X] T012 建立 Credential migration `backend/database/migrations/2026_05_22_000002_create_credentials_table.php`（一對一 FK to members）
+- [X] T013 [P] 建立 sessions migration：執行 `php artisan session:table` 由 artisan 產出檔案於 `backend/database/migrations/`（檔名 timestamp 由 artisan 決定），欄位對齊 data-model.md E5
+- [X] T014 [P] 建立 AuditEvent migration `backend/database/migrations/2026_05_22_000006_create_audit_events_table.php`（依 E6，含 INDEX(created_at)）
+- [X] T015 跑 `php artisan migrate` 驗證 schema
+- [X] T016 [P] 建立 `backend/app/Models/Member.php`（uuid 自動產生 + `Notifiable`、`SoftDeletes`、`hasOne(Credential::class)`、`hasMany(AuditEvent::class)`、隱藏 password 欄位；本期走 Sanctum SPA cookie session，不需 `HasApiTokens`）
+- [X] T017 [P] 建立 `backend/app/Models/Credential.php`（belongsTo Member、bcrypt mutator on `password_hash`）
+- [X] T018 [P] 建立 `backend/app/Models/AuditEvent.php`（fillable: member_id, event_type, result, ip_address, user_agent, metadata；無 update）
+- [X] T019 [P] 建立 Factory `backend/database/factories/MemberFactory.php`（含 `verified()`、`unverified()`、`locked()` states）
 
 ### Backend — Auth pipeline 設定
 
-- [ ] T020 發佈 Fortify config：`php artisan vendor:publish --provider="Laravel\Fortify\FortifyServiceProvider"`；於 `backend/config/fortify.php` 關閉所有 views（`'views' => false`，純 JSON）、`features` 明列為 `[registration, resetPasswords, emailVerification, updateProfileInformation, updatePasswords]`，**明確不啟用** `twoFactorAuthentication`（spec Clarifications Q2）
-- [ ] T021 發佈 Sanctum config：`php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"`；於 `backend/config/sanctum.php` 啟用 stateful domains by env
-- [ ] T022 設定 `backend/config/auth.php` 將 `users` provider model 改為 `App\Models\Member`，table 改為 `members`
-- [ ] T023 註冊 Sanctum middleware 於 `backend/bootstrap/app.php` API stack：`EnsureFrontendRequestsAreStateful::class`
-- [ ] T024 建立 `backend/app/Services/AuditService.php`（單一寫入入口 `record(string $event, string $result, ?Member $member, array $metadata = [])`，自動帶 ip/ua）
-- [ ] T025 於 `backend/app/Providers/AppServiceProvider.php` 註冊 RateLimiter：`Limit::perHour(10)->by($req->ip())` 鍵 `register`、`Limit::perHour(10)->by($req->ip())->by($req->input('email'))` 鍵 `password-reset`（FR-015）
-- [ ] T026 建立 `backend/routes/api.php` 套用 `prefix('v1')`、`middleware('api')` 並掛 `auth:sanctum` 群組
+- [X] T020 發佈 Fortify config：`php artisan vendor:publish --provider="Laravel\Fortify\FortifyServiceProvider"`；於 `backend/config/fortify.php` 關閉所有 views（`'views' => false`，純 JSON）、`features` 明列為 `[registration, resetPasswords, emailVerification, updateProfileInformation, updatePasswords]`，**明確不啟用** `twoFactorAuthentication`（spec Clarifications Q2）
+- [X] T021 發佈 Sanctum config：`php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"`；於 `backend/config/sanctum.php` 啟用 stateful domains by env
+- [X] T022 設定 `backend/config/auth.php` 將 `users` provider model 改為 `App\Models\Member`，table 改為 `members`
+- [X] T023 註冊 Sanctum middleware 於 `backend/bootstrap/app.php` API stack：`EnsureFrontendRequestsAreStateful::class`
+- [X] T024 建立 `backend/app/Services/AuditService.php`（單一寫入入口 `record(string $event, string $result, ?Member $member, array $metadata = [])`，自動帶 ip/ua）
+- [X] T025 於 `backend/app/Providers/AppServiceProvider.php` 註冊 RateLimiter：`Limit::perHour(10)->by($req->ip())` 鍵 `register`、`Limit::perHour(10)->by($req->ip())->by($req->input('email'))` 鍵 `password-reset`（FR-015）
+- [X] T026 建立 `backend/routes/api.php` 套用 `prefix('v1')`、`middleware('api')` 並掛 `auth:sanctum` 群組
 
 ### Backend — 共用 FormRequest 與例外處理
 
-- [ ] T027 [P] 建立 `backend/app/Exceptions/Handler.php`（或於 bootstrap renderable）統一 JSON 錯誤格式 `{message, errors}`，並對 ValidationException/AuthenticationException 給一致訊息（FR-012）
-- [ ] T028 [P] 建立共用密碼強度規則 `backend/app/Rules/PasswordPolicy.php`（≥8、含字母含數字，FR-002）
+- [X] T027 [P] 建立 `backend/app/Exceptions/Handler.php`（或於 bootstrap renderable）統一 JSON 錯誤格式 `{message, errors}`，並對 ValidationException/AuthenticationException 給一致訊息（FR-012）
+- [X] T028 [P] 建立共用密碼強度規則 `backend/app/Rules/PasswordPolicy.php`（≥8、含字母含數字，FR-002）
 
 ### Frontend — API client 與保護路由
 
-- [ ] T029 [P] 建立 `frontend/src/lib/api.ts`：fetch wrapper，首次呼叫 `/sanctum/csrf-cookie`、自動帶 `X-XSRF-TOKEN` header（從 cookie 讀）、`credentials: 'include'`、422/401/410/429 標準化錯誤回傳
-- [ ] T030 [P] 建立 `frontend/src/lib/queryClient.ts`：TanStack Query QueryClient 預設 staleTime 30s
-- [ ] T031 [P] 建立 `frontend/src/lib/auth.ts`：`useSession()` hook 包裝 `GET /api/v1/auth/me`、`invalidate()` 工具
-- [ ] T032 [P] 建立 `frontend/src/components/ProtectedRoute.tsx`：未登入時 `Navigate to="/login?redirectTo={pathname}"`（FR-011）
-- [ ] T033 [P] 建立 `frontend/src/main.tsx` + `App.tsx`：套上 QueryClientProvider + RouterProvider；建立 `frontend/src/router.tsx` 含 `(auth)` 與 `_protected` route groups
-- [ ] T034 [P] 建立 `frontend/src/components/ui/`：`Button.tsx`、`Input.tsx`、`FormField.tsx`、`Alert.tsx`（Tailwind）
+- [X] T029 [P] 建立 `frontend/src/lib/api.ts`：fetch wrapper，首次呼叫 `/sanctum/csrf-cookie`、自動帶 `X-XSRF-TOKEN` header（從 cookie 讀）、`credentials: 'include'`、422/401/410/429 標準化錯誤回傳
+- [X] T030 [P] 建立 `frontend/src/lib/queryClient.ts`：TanStack Query QueryClient 預設 staleTime 30s
+- [X] T031 [P] 建立 `frontend/src/lib/auth.ts`：`useSession()` hook 包裝 `GET /api/v1/auth/me`、`invalidate()` 工具
+- [X] T032 [P] 建立 `frontend/src/components/ProtectedRoute.tsx`：未登入時 `Navigate to="/login?redirectTo={pathname}"`（FR-011）
+- [X] T033 [P] 建立 `frontend/src/main.tsx` + `App.tsx`：套上 QueryClientProvider + RouterProvider；建立 `frontend/src/router.tsx` 含 `(auth)` 與 `_protected` route groups
+- [X] T034 [P] 建立 `frontend/src/components/ui/`：`Button.tsx`、`Input.tsx`、`FormField.tsx`、`Alert.tsx`（Tailwind）
 
 ### 測試基線
 
-- [ ] T035 [P] 設定 `backend/tests/Pest.php`：`uses(RefreshDatabase::class)->in('Feature')`、共用 helper `actingAsMember()`
-- [ ] T036 [P] 設定 `frontend/vitest.config.ts`：jsdom env、setupFiles `tests/setup.ts` 引入 `@testing-library/jest-dom`
-- [ ] T037 [P] 設定 `e2e/playwright.config.ts`：3 個 spec 標籤 P1/P2/P3，webServer 自動啟動 backend + frontend
+- [X] T035 [P] 設定 `backend/tests/Pest.php`：`uses(RefreshDatabase::class)->in('Feature')`、共用 helper `actingAsMember()`
+- [X] T036 [P] 設定 `frontend/vitest.config.ts`：jsdom env、setupFiles `tests/setup.ts` 引入 `@testing-library/jest-dom`
+- [X] T037 [P] 設定 `e2e/playwright.config.ts`：3 個 spec 標籤 P1/P2/P3，webServer 自動啟動 backend + frontend
 
 **Checkpoint**：DB 已遷移、Auth pipeline 就緒、前端可呼叫受保護端點 → 三個 user story 可平行開工
 

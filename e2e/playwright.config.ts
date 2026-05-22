@@ -67,10 +67,14 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  /**
+   * 自動啟動 frontend dev server；backend 由 docker compose（host 已 expose 8000）負責。
+   * 假設 docker compose 已 up；若無，請先 `docker compose up -d`。
+   */
+  webServer: {
+    command: 'pnpm --dir ../frontend dev',
+    url: 'http://localhost:5173',
+    reuseExistingServer: !process.env.CI,
+    timeout: 60_000,
+  },
 });
