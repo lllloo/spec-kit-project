@@ -1,59 +1,85 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Backend — Member System API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Laravel 12 + Sanctum SPA cookie session + Fortify primitives，提供 `/api/v1/auth/*`、`/api/v1/profile/*` 端點。
 
-## About Laravel
+詳細功能規格見 [`../specs/001-member-system/spec.md`](../specs/001-member-system/spec.md)、技術設計見 [`../specs/001-member-system/plan.md`](../specs/001-member-system/plan.md)、契約見 [`../specs/001-member-system/contracts/`](../specs/001-member-system/contracts/)。
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 環境需求
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Docker Desktop / Podman（推薦，自帶 PHP 8.4 + Composer + 擴充）
+- 或 host 直裝 PHP 8.4 + Composer 2（不推薦，需自行裝 `pdo_mysql`/`gd`/`zip`/`intl`/`bcmath`）
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 安裝
 
-## Learning Laravel
+從 repo root 啟動全部服務（MySQL 8.4、Mailpit、Redis、Laravel app、queue worker）：
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+```powershell
+docker compose up -d
+docker compose exec app php artisan migrate
+docker compose exec app php artisan storage:link
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+API 服務於 <http://localhost:8000>。Mailpit Web UI <http://localhost:8026>。
 
-## Laravel Sponsors
+## 常用 artisan 指令
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+一律前綴 `docker compose exec app`：
 
-### Premium Partners
+```powershell
+docker compose exec app php artisan migrate              # 跑 migration
+docker compose exec app php artisan migrate:fresh        # 砍 schema 重建（會清資料）
+docker compose exec app php artisan tinker               # REPL
+docker compose exec app php artisan queue:work --once    # 處理一筆 job
+docker compose exec app php artisan members:prune-audit-events
+                                                          # 手動清理 30 天前 audit（routes/console.php 已排程 daily）
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## 測試
 
-## Contributing
+```powershell
+docker compose exec app php artisan test                 # 全部
+docker compose exec app php artisan test --filter=Auth   # 篩名
+docker compose exec app ./vendor/bin/pint                # 程式碼風格修正
+docker compose exec app ./vendor/bin/pint --test         # 只檢查
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+測試走 Pest 3 + `RefreshDatabase`，每個 feature test 使用獨立 transaction，不污染主資料庫。
 
-## Code of Conduct
+## 設定要點
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- `config/auth.php`：`users` provider model 改為 `App\Models\Member`、`passwords.members.expire = 60`（FR-010）
+- `config/sanctum.php`：`SANCTUM_STATEFUL_DOMAINS` 環境變數需含前端 origin（dev：`localhost:5173`）
+- `config/session.php`：`expire_on_close = true`，未勾「記住我」session cookie 隨關閉瀏覽器失效（FR-016）
+- `config/fortify.php`：`features` 啟用 `registration / resetPasswords / emailVerification / updateProfileInformation / updatePasswords`；**不啟用** 2FA（spec Clarifications Q2）
+- `AppServiceProvider::configureRateLimiters()`：定義 `register`（10/h/IP）、`password-reset`（10/h/IP + 3/h/email）
+- `FortifyServiceProvider::boot()`：定義 `login`（5/min/email+IP）
 
-## Security Vulnerabilities
+## 目錄結構（重點）
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```text
+app/
+├── Console/Commands/PruneAuditEventsCommand.php
+├── Http/
+│   ├── Controllers/Api/V1/{Auth,Profile,Password}Controller.php
+│   ├── Middleware/SlidingRememberCookie.php
+│   ├── Requests/{Auth,Profile,Password}/*FormRequest.php
+│   └── Resources/MemberResource.php
+├── Models/{Member,Credential,EmailVerificationToken,PasswordResetToken,AuditEvent}.php
+├── Notifications/{VerifyEmail,ResetPassword}Notification.php
+├── Rules/PasswordPolicy.php
+└── Services/{Audit,Registration,Login,EmailVerification,Profile,Avatar,ChangePassword,ForgotPassword,ResetPassword}Service.php
 
-## License
+routes/
+├── api.php         # /api/v1/* 路由
+└── console.php     # daily prune-audit-events 排程
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+database/
+├── migrations/     # members / credentials / *_tokens / sessions / audit_events
+└── factories/MemberFactory.php
+
+tests/Feature/
+├── Auth/           # Register / EmailVerification / Login / Logout / Me / ResendVerification
+├── Profile/        # Show / Update / UploadAvatar
+├── Password/       # Change / Forgot / Reset
+└── Security/       # BruteForce
+```

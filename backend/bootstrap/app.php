@@ -1,12 +1,14 @@
 <?php
 
+use App\Http\Middleware\SlidingRememberCookie;
+use App\Models\Member;
+use App\Services\AuditService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
-use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
@@ -24,10 +26,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // FR-016「記住我」滑動續期：對每個已驗證請求 re-queue remember cookie 14 天
         $middleware->web(append: [
-            \App\Http\Middleware\SlidingRememberCookie::class,
+            SlidingRememberCookie::class,
         ]);
         $middleware->api(append: [
-            \App\Http\Middleware\SlidingRememberCookie::class,
+            SlidingRememberCookie::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -49,6 +51,13 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (TooManyRequestsHttpException $e, Request $request) {
             if ($request->expectsJson() || $request->is('api/*')) {
+                // FR-004：登入路由被 throttle 視為帳號鎖定，寫 audit login.lockout（SC-006 baseline）
+                if ($request->is('api/v1/auth/login')) {
+                    $email = strtolower((string) $request->input('email', ''));
+                    $member = $email !== '' ? Member::where('email', $email)->first() : null;
+                    app(AuditService::class)->failure('login.lockout', $member);
+                }
+
                 return response()->json(['message' => '請求過於頻繁，請稍後再試'], 429);
             }
         });

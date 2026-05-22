@@ -186,31 +186,31 @@ description: "Implementation tasks for 001-member-system"
 
 ### Tests for US3（先寫，必須失敗）⚠️
 
-- [ ] T081 [P] [US3] Backend feature test `backend/tests/Feature/Password/ChangePasswordTest.php`：current_password 正確 → 200；錯誤 → 422；變更後 other sessions 全失效（DB 查 sessions table）
-- [ ] T082 [P] [US3] Backend feature test `backend/tests/Feature/Password/ForgotPasswordTest.php`：合法 email 200；不存在 email 也 200（FR-009）；同 email/h >3 次 429；舊 token 失效
-- [ ] T083 [P] [US3] Backend feature test `backend/tests/Feature/Password/ResetPasswordTest.php`：有效 token + 強密碼 → 200；過期 → 410；已使用 → 410；重設後 other sessions 失效
-- [ ] T084 [P] [US3] Frontend Vitest `frontend/tests/forms/ChangePasswordForm.test.tsx`、`ForgotPasswordForm.test.tsx`、`ResetPasswordForm.test.tsx`
-- [ ] T085 [P] [US3] Playwright `e2e/tests/password-reset.spec.ts`：流程 A + B
+- [X] T081 [P] [US3] Backend feature test `backend/tests/Feature/Password/ChangePasswordTest.php`：current_password 正確 → 200；錯誤 → 422；變更後 other sessions 全失效（DB 查 sessions table）
+- [X] T082 [P] [US3] Backend feature test `backend/tests/Feature/Password/ForgotPasswordTest.php`：合法 email 200；不存在 email 也 200（FR-009）；同 email/h >3 次 429；舊 token 失效
+- [X] T083 [P] [US3] Backend feature test `backend/tests/Feature/Password/ResetPasswordTest.php`：有效 token + 強密碼 → 200；過期 → 410；已使用 → 410；重設後 other sessions 失效
+- [X] T084 [P] [US3] Frontend Vitest `frontend/tests/forms/ChangePasswordForm.test.tsx`、`ForgotPasswordForm.test.tsx`、`ResetPasswordForm.test.tsx`
+- [X] T085 [P] [US3] Playwright `e2e/tests/password-reset.spec.ts`：流程 A + B
 
 ### Backend 實作 US3
 
-- [ ] T086 [US3] 建立 PasswordResetToken migration `backend/database/migrations/2026_05_22_000004_create_password_reset_tokens_table.php`（依 E4）
-- [ ] T087 [US3] 建立 `backend/app/Models/PasswordResetToken.php`
-- [ ] T088 [P] [US3] 建立 `backend/app/Notifications/ResetPasswordNotification.php` implements `ShouldQueue`
-- [ ] T089 [US3] 建立 `backend/app/Services/ChangePasswordService.php`（驗證舊密碼、bcrypt 新密碼、更新 `credentials.password_changed_at`、廢除其他 sessions、寫 audit）
-- [ ] T090 [US3] 建立 `backend/app/Services/ForgotPasswordService.php`（無論 email 是否存在皆走相同 latency；存在時建立 token + 寄信 + 廢除舊 token；寫 audit）
-- [ ] T091 [US3] 建立 `backend/app/Services/ResetPasswordService.php`（驗證 token + 強度 → 更新密碼 + 消費 token + 廢除全部 sessions + 寫 audit）
-- [ ] T092 [US3] 建立 `backend/app/Http/Requests/Password/*`：ChangePasswordRequest、ForgotPasswordRequest、ResetPasswordRequest
-- [ ] T093 [US3] 建立 `backend/app/Http/Controllers/Api/V1/PasswordController.php`：`change`、`forgot`、`reset`
-- [ ] T094 [US3] 於 `backend/routes/api.php` 註冊：PATCH `/v1/profile/password`（auth:sanctum）、POST `/v1/auth/password/forgot`（throttle:password-reset）、POST `/v1/auth/password/reset`
+- [X] T086 [US3] 建立 PasswordResetToken migration `backend/database/migrations/2026_05_22_000004_create_password_reset_tokens_table.php`（依 E4）
+- [X] T087 [US3] 建立 `backend/app/Models/PasswordResetToken.php`
+- [X] T088 [P] [US3] 建立 `backend/app/Notifications/ResetPasswordNotification.php` implements `ShouldQueue`
+- [X] T089 [US3] 建立 `backend/app/Services/ChangePasswordService.php`（驗證舊密碼、bcrypt 新密碼、更新 `credentials.password_changed_at`、廢除其他 sessions、寫 audit）
+- [X] T090 [US3] 建立 `backend/app/Services/ForgotPasswordService.php`（無論 email 是否存在皆走相同 latency；存在時建立 token + 寄信 + 廢除舊 token；寫 audit）
+- [X] T091 [US3] 建立 `backend/app/Services/ResetPasswordService.php`（驗證 token + 強度 → 更新密碼 + 消費 token + 廢除全部 sessions + 寫 audit）
+- [X] T092 [US3] 建立 `backend/app/Http/Requests/Password/*`：ChangePasswordRequest、ForgotPasswordRequest、ResetPasswordRequest
+- [X] T093 [US3] 建立 `backend/app/Http/Controllers/Api/V1/PasswordController.php`：`change`、`forgot`、`reset`
+- [X] T094 [US3] 於 `backend/routes/api.php` 註冊：PATCH `/v1/profile/password`（auth:sanctum）、POST `/v1/auth/password/forgot`（throttle:password-reset）、POST `/v1/auth/password/reset`
 
 ### Frontend 實作 US3
 
-- [ ] T095 [P] [US3] 補 `frontend/src/lib/schemas.ts`：changePasswordSchema、forgotPasswordSchema、resetPasswordSchema
-- [ ] T096 [P] [US3] 建立 `frontend/src/components/forms/ChangePasswordForm.tsx`、`ForgotPasswordForm.tsx`、`ResetPasswordForm.tsx`
-- [ ] T097 [US3] 建立 `frontend/src/routes/_protected/password.tsx`（變更密碼頁；成功後因 session 失效自動回 login）
-- [ ] T098 [US3] 建立 `frontend/src/routes/(auth)/forgot-password.tsx`、`reset-password.tsx`（後者 loader 解析 ?token）
-- [ ] T099 [US3] 於 dashboard 與 profile 加入 `Link to="/password"`、登入頁加入 `Link to="/forgot-password"`
+- [X] T095 [P] [US3] 補 `frontend/src/lib/schemas.ts`：changePasswordSchema、forgotPasswordSchema、resetPasswordSchema
+- [X] T096 [P] [US3] 建立 `frontend/src/components/forms/ChangePasswordForm.tsx`、`ForgotPasswordForm.tsx`、`ResetPasswordForm.tsx`
+- [X] T097 [US3] 建立 `frontend/src/routes/_protected/password.tsx`（變更密碼頁；成功後因 session 失效自動回 login）
+- [X] T098 [US3] 建立 `frontend/src/routes/(auth)/forgot-password.tsx`、`reset-password.tsx`（後者 loader 解析 ?token）
+- [X] T099 [US3] 於 dashboard 與 profile 加入 `Link to="/password"`、登入頁加入 `Link to="/forgot-password"`
 
 **Checkpoint**：US1/US2/US3 皆獨立可用
 
@@ -220,16 +220,16 @@ description: "Implementation tasks for 001-member-system"
 
 **Purpose**：保留期清理、可觀測性、README、安全與效能 walk-through
 
-- [ ] T100 [P] 建立 `backend/app/Console/Commands/PruneAuditEventsCommand.php`：刪除 `created_at < now-30 days`（FR-014）；於 `backend/routes/console.php` 排程 `daily()`
-- [ ] T101 [P] 設定 Laravel logging channel `stderr` JSON 格式於 `backend/config/logging.php`（章程 V）
-- [ ] T102 [P] 加 frontend `frontend/src/components/ErrorBoundary.tsx` 並包在 RouterProvider 外（章程 V）
-- [ ] T103 [P] 撰寫 `backend/README.md`（安裝、artisan 常用指令、測試）
-- [ ] T104 [P] 撰寫 `frontend/README.md`（dev、build、test）
-- [ ] T105 [P] 撰寫 repo root `README.md`（總覽、quickstart 連結）
-- [ ] T106 跑 `specs/001-member-system/quickstart.md` 手動 walkthrough 確認 P1 可走通
-- [ ] T107 跑全部測試 + Playwright，確認綠燈；補 missing edge case 測試
-- [ ] T108 [P] 建立 `e2e/tests/login-perf.spec.ts` 對 `/v1/auth/login` 連續打 100 次（含失敗情境），量測 p99 latency 並 assert < 2000 ms（SC-004）
-- [ ] T109 [P] 建立 `backend/tests/Feature/Security/BruteForceTest.php`：以 6 組錯誤密碼連打 → 確認第 6 次起回 429 lockout 且 audit `login.lockout` 已寫入（SC-006 baseline）；可選用 OWASP ZAP baseline 掃描作為 CI step（記錄於 `backend/README.md`）
+- [X] T100 [P] 建立 `backend/app/Console/Commands/PruneAuditEventsCommand.php`：刪除 `created_at < now-30 days`（FR-014）；於 `backend/routes/console.php` 排程 `daily()`
+- [X] T101 [P] 設定 Laravel logging channel `stderr` JSON 格式於 `backend/config/logging.php`（章程 V）
+- [X] T102 [P] 加 frontend `frontend/src/components/ErrorBoundary.tsx` 並包在 RouterProvider 外（章程 V）
+- [X] T103 [P] 撰寫 `backend/README.md`（安裝、artisan 常用指令、測試）
+- [X] T104 [P] 撰寫 `frontend/README.md`（dev、build、test）
+- [X] T105 [P] 撰寫 repo root `README.md`（總覽、quickstart 連結）
+- [X] T106 跑 `specs/001-member-system/quickstart.md` 手動 walkthrough 確認 P1 可走通
+- [X] T107 跑全部測試 + Playwright，確認綠燈；補 missing edge case 測試
+- [X] T108 [P] 建立 `e2e/tests/login-perf.spec.ts` 對 `/v1/auth/login` 連續打 100 次（含失敗情境），量測 p99 latency 並 assert < 2000 ms（SC-004）
+- [X] T109 [P] 建立 `backend/tests/Feature/Security/BruteForceTest.php`：以 6 組錯誤密碼連打 → 確認第 6 次起回 429 lockout 且 audit `login.lockout` 已寫入（SC-006 baseline）；可選用 OWASP ZAP baseline 掃描作為 CI step（記錄於 `backend/README.md`）
 
 ---
 
