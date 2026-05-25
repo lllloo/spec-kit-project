@@ -38,8 +38,26 @@ let csrfReady = false;
 
 async function ensureCsrf(): Promise<void> {
   if (csrfReady) return;
-  await fetch('/sanctum/csrf-cookie', { credentials: 'include' });
-  csrfReady = true;
+  // CSRF 是冪等 GET：對暫時性失敗（如 dev server 載入高峰時 proxy 回 503 或掛起）退避重試，
+  // 逾時保護避免單次請求卡死。耗盡才丟錯，讓 UI fail fast 而非永久 pending。
+  let lastError = '';
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 3000);
+      const res = await fetch('/sanctum/csrf-cookie', { credentials: 'include', signal: ctrl.signal });
+      clearTimeout(timer);
+      if (res.ok) {
+        csrfReady = true;
+        return;
+      }
+      lastError = `HTTP ${res.status}`;
+    } catch (e) {
+      lastError = e instanceof Error && e.name === 'AbortError' ? '逾時' : '連線失敗';
+    }
+    await new Promise((r) => setTimeout(r, 250 * (attempt + 1)));
+  }
+  throw new ApiError(503, { message: `無法建立連線（CSRF token 取得失敗：${lastError}），請稍後再試` });
 }
 
 function getCookie(name: string): string | null {
@@ -55,27 +73,38 @@ export async function api<T = unknown>(
   body?: unknown,
   extraInit: RequestInit = {},
 ): Promise<T> {
-  // 任何非 GET 都需要 CSRF token
-  if (method !== 'GET') await ensureCsrf();
+  const send = async (): Promise<Response> => {
+    // 任何非 GET 都需要 CSRF token
+    if (method !== 'GET') await ensureCsrf();
 
-  const headers = new Headers(extraInit.headers);
-  headers.set('Accept', 'application/json');
+    const headers = new Headers(extraInit.headers);
+    headers.set('Accept', 'application/json');
 
-  const isFormData = body instanceof FormData;
-  if (body !== undefined && !isFormData) {
-    headers.set('Content-Type', 'application/json');
+    const isFormData = body instanceof FormData;
+    if (body !== undefined && !isFormData) {
+      headers.set('Content-Type', 'application/json');
+    }
+
+    const xsrf = getCookie('XSRF-TOKEN');
+    if (xsrf) headers.set('X-XSRF-TOKEN', xsrf);
+
+    return fetch(path.startsWith('/') ? path : `/${path}`, {
+      method,
+      credentials: 'include',
+      headers,
+      body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
+      ...extraInit,
+    });
+  };
+
+  let res = await send();
+
+  // 419 = CSRF token 過期（如改密碼/登出後 session 輪替，舊 XSRF cookie 失效）。
+  // 重置旗標 → 重取新 token → 重試一次，避免使用者被一次性的 token mismatch 卡住。
+  if (res.status === 419 && method !== 'GET') {
+    csrfReady = false;
+    res = await send();
   }
-
-  const xsrf = getCookie('XSRF-TOKEN');
-  if (xsrf) headers.set('X-XSRF-TOKEN', xsrf);
-
-  const res = await fetch(path.startsWith('/') ? path : `/${path}`, {
-    method,
-    credentials: 'include',
-    headers,
-    body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
-    ...extraInit,
-  });
 
   if (res.status === 204) return undefined as T;
 

@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { api, ApiError } from '../../lib/api';
-import { sessionQueryKey } from '../../lib/auth';
+import { sessionQueryKey, type Member } from '../../lib/auth';
 import { loginSchema, type LoginInput } from '../../lib/schemas';
 import { Alert } from '../ui/Alert';
 import { Button } from '../ui/Button';
@@ -30,8 +30,11 @@ export function LoginForm({ onSuccess }: Props) {
 
   const mutation = useMutation({
     mutationFn: (input: LoginInput) =>
-      api<{ message: string; member: unknown }>('POST', '/api/v1/auth/login', input),
-    onSuccess: () => {
+      api<{ message: string; member: Member }>('POST', '/api/v1/auth/login', input),
+    onSuccess: (data) => {
+      // 用登入回應直接 seed session cache，避免導向受保護頁時 ProtectedRoute
+      // 讀到舊的未登入 session（invalidate 為異步 refetch）而誤踢回 /login。
+      qc.setQueryData(sessionQueryKey, data.member);
       qc.invalidateQueries({ queryKey: sessionQueryKey });
       onSuccess?.();
     },
