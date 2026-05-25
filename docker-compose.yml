@@ -10,6 +10,9 @@ x-app-base: &app-base
   image: spec-kit/backend:latest
   volumes:
     - ./backend:/var/www/html
+    # vendor 走容器原生層（named volume），避開 WSL2 bind mount 的慢 stat
+    # → opcache 每請求 stat 9600+ 套件檔由 ~2-3s 降到 ~10ms
+    - vendor-data:/var/www/html/vendor
   environment:
     # 容器內部以 service 名解析；host-side 客戶端仍可用 localhost:3306 等
     DB_HOST: mysql
@@ -91,6 +94,7 @@ services:
 volumes:
   mysql-data:
   redis-data:
+  vendor-data:
 
 networks:
   spec-kit:

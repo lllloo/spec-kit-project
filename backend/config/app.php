@@ -16,6 +16,12 @@ return [
     'name' => env('APP_NAME', 'Laravel'),
 
     /*
+    | API 防濫用節流總開關。預設啟用；E2E/本機壓測可於 .env 設 THROTTLE_ENABLED=false 停用。
+    | testing 環境（phpunit.xml 未覆蓋）取預設 true，故 throttle 相關單元測試不受影響。
+    */
+    'throttle_enabled' => env('THROTTLE_ENABLED', true),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------

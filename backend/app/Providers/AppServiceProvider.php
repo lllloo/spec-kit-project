@@ -30,11 +30,17 @@ class AppServiceProvider extends ServiceProvider
      */
     private function configureRateLimiters(): void
     {
-        RateLimiter::for('register', function (Request $request) {
-            return Limit::perHour(10)->by($request->ip());
+        $enabled = (bool) config('app.throttle_enabled', true);
+
+        RateLimiter::for('register', function (Request $request) use ($enabled) {
+            return $enabled ? Limit::perHour(10)->by($request->ip()) : Limit::none();
         });
 
-        RateLimiter::for('password-reset', function (Request $request) {
+        RateLimiter::for('password-reset', function (Request $request) use ($enabled) {
+            if (! $enabled) {
+                return Limit::none();
+            }
+
             $email = strtolower((string) $request->input('email', ''));
 
             return [

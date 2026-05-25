@@ -33,6 +33,10 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::ignoreRoutes();
 
         RateLimiter::for('login', function (Request $request) {
+            if (! (bool) config('app.throttle_enabled', true)) {
+                return Limit::none();
+            }
+
             $throttleKey = Str::transliterate(
                 Str::lower((string) $request->input(Fortify::username())).'|'.$request->ip()
             );
