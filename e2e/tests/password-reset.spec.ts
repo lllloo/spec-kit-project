@@ -105,7 +105,8 @@ test('US3 流程 A：登入 → 變更密碼 → 用新密碼重新登入', asyn
   await page.getByRole('button', { name: '登入' }).click();
   await expect(page.getByText(/認證失敗/)).toBeVisible({ timeout: 10_000 });
 
-  // 用新密碼登入成功
+  // 用新密碼登入成功（回乾淨登入頁，不帶 redirectTo，預期進入 dashboard）
+  await page.goto('/login');
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('密碼').fill(newPassword);
   await page.getByRole('button', { name: '登入' }).click();

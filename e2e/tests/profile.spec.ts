@@ -1,6 +1,4 @@
 import { expect, test } from '@playwright/test';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 
 /**
  * US2：個資管理 + 頭像上傳。
@@ -26,18 +24,24 @@ test('US2：登入後改 display_name + 上傳 png 頭像；未登入訪 /profil
   await page.getByRole('button', { name: '註冊' }).click();
   await expect(page.getByText(/註冊成功/)).toBeVisible({ timeout: 10_000 });
 
-  // 取信驗證
-  const mailRes = await page.request.get(
-    `http://localhost:8026/api/v1/search?query=${encodeURIComponent('to:' + email)}`,
-  );
-  const mailData = (await mailRes.json()) as { messages: Array<{ ID: string }> };
-  const msgDetail = await page.request.get(
-    `http://localhost:8026/api/v1/message/${mailData.messages[0].ID}`,
-  );
-  const body = (await msgDetail.json()) as { HTML: string; Text: string };
-  const link = (body.HTML + '\n' + body.Text).match(
-    /http[s]?:\/\/[^\s"]+\/verify-email\?token=[A-Za-z0-9]+/,
-  )?.[0];
+  // 取信驗證（寄信為非同步 queue job，需輪詢等待信件抵達）
+  let link: string | undefined;
+  for (let i = 0; i < 30 && !link; i++) {
+    const mailRes = await page.request.get(
+      `http://localhost:8026/api/v1/search?query=${encodeURIComponent('to:' + email)}`,
+    );
+    const mailData = (await mailRes.json()) as { messages: Array<{ ID: string }> };
+    if (mailData.messages.length > 0) {
+      const msgDetail = await page.request.get(
+        `http://localhost:8026/api/v1/message/${mailData.messages[0].ID}`,
+      );
+      const body = (await msgDetail.json()) as { HTML: string; Text: string };
+      link = (body.HTML + '\n' + body.Text).match(
+        /http[s]?:\/\/[^\s"]+\/verify-email\?token=[A-Za-z0-9]+/,
+      )?.[0];
+    }
+    if (!link) await page.waitForTimeout(300);
+  }
   if (!link) throw new Error('無驗證連結');
   await page.goto(link);
   await expect(page.getByText(/Email 已驗證完成/)).toBeVisible();
@@ -59,18 +63,11 @@ test('US2：登入後改 display_name + 上傳 png 頭像；未登入訪 /profil
   await page.getByRole('button', { name: '儲存變更' }).click();
   await expect(page.getByText('已儲存')).toBeVisible();
 
-  // 6. 上傳頭像（小型 png）
-  const tinyPng = join(__dirname, 'fixtures', 'avatar-small.png');
-  // 若 fixtures 不存在，用內建 1x1 png base64
-  let pngBuffer: Buffer;
-  try {
-    pngBuffer = readFileSync(tinyPng);
-  } catch {
-    pngBuffer = Buffer.from(
-      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORk5CYII=',
-      'base64',
-    );
-  }
+  // 6. 上傳頭像（內建 1x1 png；avoid __dirname，Playwright 以 ESM 執行）
+  const pngBuffer = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORk5CYII=',
+    'base64',
+  );
   await page
     .locator('[data-testid="avatar-input"]')
     .setInputFiles({ name: 'me.png', mimeType: 'image/png', buffer: pngBuffer });
