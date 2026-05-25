@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+use App\Models\Member;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -11,15 +11,26 @@ class DatabaseSeeder extends Seeder
     use WithoutModelEvents;
 
     /**
-     * Seed the application's database.
+     * 建立開發／QA 用的固定測試帳號。
+     *
+     * 帳號：test@example.com / Password123（已驗證，可直接登入）
+     * 密碼符合 FR-002（≥8 字元、含字母與數字）。
+     * 具存在性保護，可重複執行（idempotent）。
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $email = 'test@example.com';
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        if (Member::where('email', $email)->withTrashed()->exists()) {
+            return;
+        }
+
+        Member::factory()
+            ->verified()
+            ->withCredential('Password123')
+            ->create([
+                'email' => $email,
+                'display_name' => 'Test User',
+            ]);
     }
 }

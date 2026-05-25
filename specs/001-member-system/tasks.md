@@ -230,6 +230,7 @@ description: "Implementation tasks for 001-member-system"
 - [X] T107 跑全部測試 + Playwright，確認綠燈；補 missing edge case 測試
 - [X] T108 [P] 建立 `e2e/tests/login-perf.spec.ts` 對 `/v1/auth/login` 連續打 100 次（含失敗情境），量測 p99 latency 並 assert < 2000 ms（SC-004）
 - [X] T109 [P] 建立 `backend/tests/Feature/Security/BruteForceTest.php`：以 6 組錯誤密碼連打 → 確認第 6 次起回 429 lockout 且 audit `login.lockout` 已寫入（SC-006 baseline）；可選用 OWASP ZAP baseline 掃描作為 CI step（記錄於 `backend/README.md`）
+- [X] T110 [P] 重寫 `backend/database/seeders/DatabaseSeeder.php`：以 `Member::factory()->verified()->withCredential()` 建立固定測試帳號（`test@example.com` / `Password123`，已驗證），存在性保護確保可重複執行；於 `specs/001-member-system/quickstart.md` 補 `db:seed` 說明。**補登**——原規劃 Setup/Foundational 漏列 seeder 任務（T015 僅 migrate、T019 僅 factory）
 
 ---
 

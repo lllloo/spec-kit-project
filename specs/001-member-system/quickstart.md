@@ -51,7 +51,12 @@ docker compose up -d
 docker compose exec app php artisan migrate
 # storage:link 已在 image 啟動時或於 setup 階段完成；如需重做：
 docker compose exec app php artisan storage:link
+
+# （選用）建立固定測試帳號，免每次手動註冊 + 收驗證信
+docker compose exec app php artisan db:seed
 ```
+
+> **測試帳號**（`db:seed` 後可用）：Email `test@example.com` / 密碼 `Password123`，狀態已驗證，可於 <http://localhost:5173/login> 直接登入。`db:seed` 可重複執行（已做存在性保護）。
 
 未來 artisan / composer 一律前綴 `docker compose exec app`：
 
