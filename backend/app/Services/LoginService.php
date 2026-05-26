@@ -14,7 +14,7 @@ class LoginService
     /**
      * 登入流程：
      * 1. 透過 Auth::attempt 驗證憑證（自動觸發 Credential password_hash 比對）
-     * 2. 已鎖定 / 未驗證 / 密碼錯誤 → 一致 422（FR-012）
+     * 2. 未驗證 / 密碼錯誤 → 一致 422（FR-012）；失敗節流由 throttle:login（Fortify limiter）處理
      * 3. 成功 → 寫 audit、更新 last_login_at；session regenerate
      */
     public function attempt(Request $request, string $email, string $password, bool $remember = false): Member
@@ -26,11 +26,6 @@ class LoginService
         $invalid = ValidationException::withMessages([
             'email' => ['認證失敗，請確認帳號狀態或重新嘗試'],
         ]);
-
-        if ($member?->isLocked()) {
-            $this->audit->failure('login.failure', $member, ['reason' => 'locked']);
-            throw $invalid;
-        }
 
         if (! Auth::attempt(['email' => $email, 'password' => $password], $remember)) {
             $this->audit->failure('login.failure', $member, ['reason' => 'bad_credentials']);

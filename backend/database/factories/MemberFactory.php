@@ -34,11 +34,6 @@ class MemberFactory extends Factory
         return $this->state(fn () => ['email_verified_at' => null]);
     }
 
-    public function locked(int $minutes = 1): static
-    {
-        return $this->state(fn () => ['locked_until' => now()->addMinutes($minutes)]);
-    }
-
     /**
      * 同步建立對應 Credential（預設密碼：password123）
      */

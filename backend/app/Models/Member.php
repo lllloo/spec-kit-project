@@ -35,7 +35,6 @@ class Member extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
-            'locked_until' => 'datetime',
             'last_login_at' => 'datetime',
         ];
     }
@@ -61,10 +60,5 @@ class Member extends Authenticatable implements MustVerifyEmail
     public function auditEvents(): HasMany
     {
         return $this->hasMany(AuditEvent::class);
-    }
-
-    public function isLocked(): bool
-    {
-        return $this->locked_until !== null && $this->locked_until->isFuture();
     }
 }

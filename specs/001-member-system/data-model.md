@@ -26,7 +26,6 @@
 | `display_name` | varchar(64) | NULL | FR-006，註冊時可選填 |
 | `avatar_path` | varchar(255) | NULL | 相對 `storage/app/public/` 路徑（FR-007） |
 | `contact_info` | varchar(255) | NULL | spec Assumptions：單一文字欄位 |
-| `locked_until` | timestamp | NULL | NULL = 未鎖定；非 NULL = 鎖定至此時刻（FR-004） |
 | `last_login_at` | timestamp | NULL | spec Entity 屬性 |
 | `remember_token` | varchar(100) | NULL | Laravel 「記住我」（FR-016） |
 | `created_at` / `updated_at` | timestamp | NOT NULL | Laravel 預設 |
@@ -35,9 +34,8 @@
 **Indexes**:
 - UNIQUE(`email`)（不分大小寫由 collation 保證）
 - UNIQUE(`uuid`)
-- INDEX(`locked_until`)（清理 expired locks）
 
-**State Machine** (status 由 `email_verified_at` + `locked_until` + `deleted_at` 推導，無單獨欄位)：
+**State Machine** (status 由 `email_verified_at` + `deleted_at` 推導，無單獨欄位)：
 
 ```text
 PENDING_VERIFICATION (email_verified_at IS NULL)
@@ -45,13 +43,10 @@ PENDING_VERIFICATION (email_verified_at IS NULL)
     │ ─── token expired ──→ PENDING (重新申請)
 
 VERIFIED
-    │ ─── failed_login × N ─→ LOCKED (locked_until = now + 60s)
     │ ─── manual_delete ────→ DELETED (deleted_at set)
-
-LOCKED
-    │ ─── locked_until past ─→ VERIFIED (auto-unlock)
-    │ ─── correct_password + still_within_lock ─→ stays LOCKED
 ```
+
+> 登入失敗節流（FR-004）由 Fortify `throttle:login` rate limiter 處理（同一 Email + IP 每分鐘 ≤5 次 → 429），**不**落 DB、無帳號鎖定狀態。
 
 **Validation rules**:
 - Email：FR-001（lowercase compare）+ RFC 5322 格式
